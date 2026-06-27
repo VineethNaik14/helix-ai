@@ -1,13 +1,20 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
 app = FastAPI(
-    title="Helix AI", description="AI Code Intelligence Platform", version="0.1.0"
+    title=settings.APP_NAME,
+    description="AI Code Intelligence Platform",
+    version=settings.VERSION,
 )
 
 
 @app.get("/", tags=["Root"])
 async def root():
-    return {"message": "Welcome to Helix - AI"}
+    return {
+        "project": settings.APP_NAME,
+        "version": settings.VERSION,
+    }
 
 
 @app.get("/health", tags=["Health"])
