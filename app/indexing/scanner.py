@@ -56,7 +56,13 @@ class RepositoryScanner:
             "total_files": len(files),
             "total_size_bytes": total_size,
             "languages": language_distribution,
-            "files": [str(file.relative_to(root)) for file in files],
+            "files": [
+                {
+                    "path": str(file.relative_to(root)),
+                    "language": language_detector.detect(file),
+                }
+                for file in files
+            ],
             "python_metadata": python_metadata,
             "dependency_graph": graph,
         }
