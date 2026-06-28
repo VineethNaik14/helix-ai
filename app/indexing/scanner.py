@@ -28,7 +28,6 @@ class RepositoryScanner:
         python_metadata = {}
 
         for path in root.rglob("*"):
-            # Skip ignored directories
             if any(part in self.IGNORE_DIRS for part in path.parts):
                 continue
 
