@@ -1,9 +1,8 @@
 from sqlalchemy.orm import Session
 
-from app.database.models import Repository
 from app.indexing.scanner import repository_scanner
 from app.schemas.repository import RepositoryCreate
-from app.database.models import File
+from app.database.models import File, Function, Repository
 
 class RepositoryService:
     def list_repositories(self, db: Session):
@@ -26,9 +25,7 @@ class RepositoryService:
     ):
         scan_result = repository_scanner.scan(repository.path)
         existing_repository = (
-            db.query(Repository)
-            .filter(Repository.path == scan_result["path"])
-            .first()
+            db.query(Repository).filter(Repository.path == scan_result["path"]).first()
         )
 
         if existing_repository:
@@ -52,7 +49,20 @@ class RepositoryService:
                 path=file["path"],
                 language=file["language"],
             )
+
             db.add(db_file)
+            db.flush()
+            metadata = scan_result["python_metadata"].get(file["path"])
+
+            if metadata:
+                for function in metadata["functions"]:
+                    db_function = Function(
+                        file_id=db_file.id,
+                        name=function["name"],
+                        line=function["line"],
+                    )
+
+                    db.add(db_function)
 
         db.commit()
 
