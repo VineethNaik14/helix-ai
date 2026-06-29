@@ -29,6 +29,10 @@ class PythonParser:
                         "name": node.name,
                         "args": [arg.arg for arg in node.args.args],
                         "line": node.lineno,
+                        "end_line": getattr(node, "end_lineno", None),
+                        "return_type": (
+                            ast.unparse(node.returns) if node.returns else None
+                        ),
                         "docstring": ast.get_docstring(node),
                     }
                 )
@@ -38,6 +42,7 @@ class PythonParser:
                     {
                         "name": node.name,
                         "line": node.lineno,
+                        "end_line": getattr(node, "end_lineno", None),
                         "docstring": ast.get_docstring(node),
                         "methods": [
                             child.name

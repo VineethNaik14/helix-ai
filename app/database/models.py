@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON
 from sqlalchemy.orm import relationship
 
 from app.database.database import Base
@@ -44,6 +44,18 @@ class File(Base):
         cascade="all, delete-orphan",
     )
 
+    classes = relationship(
+        "Class",
+        back_populates="file",
+        cascade="all, delete-orphan",
+    )
+
+    imports = relationship(
+        "Import",
+        back_populates="file",
+        cascade="all, delete-orphan",
+    )
+
 
 class Function(Base):
     __tablename__ = "functions"
@@ -58,8 +70,51 @@ class Function(Base):
 
     name = Column(String, nullable=False)
     line = Column(Integer, nullable=False)
+    end_line = Column(Integer)
+    return_type = Column(String)
+    embedding = Column(JSON)
 
     file = relationship(
         "File",
         back_populates="functions",
+    )
+
+
+class Class(Base):
+    __tablename__ = "classes"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    file_id = Column(
+        Integer,
+        ForeignKey("files.id"),
+        nullable=False,
+    )
+
+    name = Column(String, nullable=False)
+    line = Column(Integer, nullable=False)
+    end_line = Column(Integer)
+
+    file = relationship(
+        "File",
+        back_populates="classes",
+    )
+
+
+class Import(Base):
+    __tablename__ = "imports"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    file_id = Column(
+        Integer,
+        ForeignKey("files.id"),
+        nullable=False,
+    )
+
+    module = Column(String, nullable=False)
+
+    file = relationship(
+        "File",
+        back_populates="imports",
     )

@@ -11,7 +11,9 @@ class LanguageDetector:
         ".c": "C",
         ".go": "Go",
         ".rs": "Rust",
-        ".txt": "Text"
+        ".txt": "Text",
+        ".env": "Environment",
+        ".gitignore": "Git Ignore",
     }
 
     def detect(self, file_path: Path) -> str:

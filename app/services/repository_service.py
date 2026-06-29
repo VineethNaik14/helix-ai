@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from app.indexing.scanner import repository_scanner
 from app.schemas.repository import RepositoryCreate
-from app.database.models import File, Function, Repository
+from app.database.models import Repository
+from app.indexing.indexer import repository_indexer
 
 class RepositoryService:
     def list_repositories(self, db: Session):
@@ -23,54 +23,10 @@ class RepositoryService:
         repository: RepositoryCreate,
         db: Session,
     ):
-        scan_result = repository_scanner.scan(repository.path)
-        existing_repository = (
-            db.query(Repository).filter(Repository.path == scan_result["path"]).first()
+        return repository_indexer.index(
+            repository.path,
+            db,
         )
-
-        if existing_repository:
-            return {
-                "message": "Repository already indexed",
-                "id": existing_repository.id,
-            }
-
-        db_repository = Repository(
-            name=scan_result["name"],
-            path=scan_result["path"],
-            status="indexed",
-        )
-
-        db.add(db_repository)
-        db.commit()
-        db.refresh(db_repository)
-        for file in scan_result["files"]:
-            db_file = File(
-                repository_id=db_repository.id,
-                path=file["path"],
-                language=file["language"],
-            )
-
-            db.add(db_file)
-            db.flush()
-            metadata = scan_result["python_metadata"].get(file["path"])
-
-            if metadata:
-                for function in metadata["functions"]:
-                    db_function = Function(
-                        file_id=db_file.id,
-                        name=function["name"],
-                        line=function["line"],
-                    )
-
-                    db.add(db_function)
-
-        db.commit()
-
-        return {
-            "id": db_repository.id,
-            "name": db_repository.name,
-            "status": db_repository.status,
-        }
 
 
 repository_service = RepositoryService()
